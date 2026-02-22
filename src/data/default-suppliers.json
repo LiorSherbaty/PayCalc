@@ -1,0 +1,48 @@
+{
+  "suppliers": [
+    {
+      "id": "sup-1",
+      "name": "Alpha Supplies",
+      "products": [
+        { "id": "prod-1", "name": "Widget A", "costPerUnit": 5.00 },
+        { "id": "prod-2", "name": "Widget B", "costPerUnit": 8.50 },
+        { "id": "prod-3", "name": "Widget C", "costPerUnit": 12.00 }
+      ]
+    },
+    {
+      "id": "sup-2",
+      "name": "Beta Materials",
+      "products": [
+        { "id": "prod-4", "name": "Component X", "costPerUnit": 15.00 },
+        { "id": "prod-5", "name": "Component Y", "costPerUnit": 3.25 },
+        { "id": "prod-6", "name": "Component Z", "costPerUnit": 22.50 }
+      ]
+    },
+    {
+      "id": "sup-3",
+      "name": "Gamma Electronics",
+      "products": [
+        { "id": "prod-7", "name": "Circuit Board", "costPerUnit": 45.00 },
+        { "id": "prod-8", "name": "LED Panel", "costPerUnit": 18.75 },
+        { "id": "prod-9", "name": "Sensor Module", "costPerUnit": 32.00 }
+      ]
+    },
+    {
+      "id": "sup-4",
+      "name": "Delta Packaging",
+      "products": [
+        { "id": "prod-10", "name": "Standard Box", "costPerUnit": 1.50 },
+        { "id": "prod-11", "name": "Premium Box", "costPerUnit": 4.25 },
+        { "id": "prod-12", "name": "Gift Wrap Kit", "costPerUnit": 2.00 }
+      ]
+    },
+    {
+      "id": "sup-5",
+      "name": "Epsilon Chemicals",
+      "products": [
+        { "id": "prod-13", "name": "Cleaning Solution", "costPerUnit": 7.80 },
+        { "id": "prod-14", "name": "Industrial Adhesive", "costPerUnit": 11.25 }
+      ]
+    }
+  ]
+}

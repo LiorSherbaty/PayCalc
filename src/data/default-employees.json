@@ -1,0 +1,61 @@
+{
+  "employees": [
+    {
+      "id": "emp-1",
+      "name": "Alice Cohen",
+      "commissionType": "flat",
+      "flatRate": 0.30
+    },
+    {
+      "id": "emp-2",
+      "name": "Bob Levy",
+      "commissionType": "tiered",
+      "tieredMode": "marginal",
+      "tiers": [
+        { "threshold": 0, "rate": 0.10 },
+        { "threshold": 500, "rate": 0.15 },
+        { "threshold": 5000, "rate": 0.20 }
+      ]
+    },
+    {
+      "id": "emp-3",
+      "name": "Carol Dahan",
+      "commissionType": "tiered",
+      "tieredMode": "flat",
+      "tiers": [
+        { "threshold": 0, "rate": 0.10 },
+        { "threshold": 1000, "rate": 0.15 },
+        { "threshold": 10000, "rate": 0.20 }
+      ]
+    },
+    {
+      "id": "emp-4",
+      "name": "David Rosen",
+      "commissionType": "flat",
+      "flatRate": 0.25
+    },
+    {
+      "id": "emp-5",
+      "name": "Emma Shapiro",
+      "commissionType": "tiered",
+      "tieredMode": "marginal",
+      "tiers": [
+        { "threshold": 0, "rate": 0.08 },
+        { "threshold": 1000, "rate": 0.12 },
+        { "threshold": 3000, "rate": 0.18 },
+        { "threshold": 8000, "rate": 0.25 }
+      ]
+    },
+    {
+      "id": "emp-6",
+      "name": "Frank Mizrahi",
+      "commissionType": "tiered",
+      "tieredMode": "flat",
+      "tiers": [
+        { "threshold": 0, "rate": 0.12 },
+        { "threshold": 2000, "rate": 0.18 },
+        { "threshold": 7000, "rate": 0.22 }
+      ]
+    }
+  ]
+}
