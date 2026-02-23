@@ -16,7 +16,8 @@
       "Bash(cd \"/c/Users/LiorS/My Drive/Lior/Projects/PayCalc\" && npx tsc --noEmit 2>&1)",
       "Bash(tail:*)",
       "Bash(cd \"/c/Users/LiorS/My Drive/Lior/Projects/PayCalc\" && npx vite build 2>&1)",
-      "Bash(echo ✓ TypeScript OK:*)"
+      "Bash(echo ✓ TypeScript OK:*)",
+      "Bash(cd \"C:\\\\Users\\\\LiorS\\\\My Drive\\\\Lior\\\\Projects\\\\PayCalc\" && npm run build 2>&1)"
     ]
   }
 }

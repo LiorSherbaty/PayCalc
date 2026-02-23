@@ -17,7 +17,7 @@ export function WhatIfSimulator() {
     () =>
       state.sales.map((entry) => ({
         ...entry,
-        dailySales: entry.dailySales.map((d) => d * (multiplier / 100)),
+        dailySales: (entry.dailySales ?? []).map((d) => d * (multiplier / 100)),
       })),
     [state.sales, multiplier]
   );

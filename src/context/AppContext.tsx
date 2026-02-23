@@ -52,29 +52,38 @@ function loadFromStorage<T>(key: string, fallback: T): T {
 }
 
 function buildInitialState(): IAppState {
+  const suppliers = loadFromStorage<ISupplier[]>(
+    STORAGE_KEYS.suppliers,
+    defaultSuppliersData.suppliers as ISupplier[]
+  );
+  const sales = loadFromStorage<IMonthlySalesEntry[]>(
+    STORAGE_KEYS.sales,
+    defaultSalesData.sales as IMonthlySalesEntry[]
+  );
+
   return {
-    suppliers: loadFromStorage<ISupplier[]>(
-      STORAGE_KEYS.suppliers,
-      defaultSuppliersData.suppliers as ISupplier[]
-    ),
+    suppliers: (suppliers ?? []).map((s) => ({
+      ...s,
+      products: s.products ?? [],
+    })),
     employees: loadFromStorage<IEmployee[]>(
       STORAGE_KEYS.employees,
       defaultEmployeesData.employees as IEmployee[]
-    ),
-    sales: loadFromStorage<IMonthlySalesEntry[]>(
-      STORAGE_KEYS.sales,
-      defaultSalesData.sales as IMonthlySalesEntry[]
-    ),
+    ) ?? [],
+    sales: (sales ?? []).map((s) => ({
+      ...s,
+      dailySales: s.dailySales ?? [],
+    })),
     productSales: loadFromStorage<IProductSaleEntry[]>(
       STORAGE_KEYS.productSales,
       defaultProductSalesData.productSales as IProductSaleEntry[]
-    ),
-    locations: loadFromStorage<ILocation[]>(STORAGE_KEYS.locations, []),
-    expenses: loadFromStorage<IExpenseItem[]>(STORAGE_KEYS.expenses, []),
+    ) ?? [],
+    locations: loadFromStorage<ILocation[]>(STORAGE_KEYS.locations, []) ?? [],
+    expenses: loadFromStorage<IExpenseItem[]>(STORAGE_KEYS.expenses, []) ?? [],
     settings: loadFromStorage<IAppSettings>(
       STORAGE_KEYS.settings,
       DEFAULT_SETTINGS
-    ),
+    ) ?? DEFAULT_SETTINGS,
   };
 }
 

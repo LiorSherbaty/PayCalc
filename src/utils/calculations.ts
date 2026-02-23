@@ -23,7 +23,7 @@ export function calculateSupplierPayment(
     productSales.map((ps) => [ps.productId, ps.quantitySold])
   );
 
-  const lines: IProductPaymentLine[] = supplier.products.map((product) => {
+  const lines: IProductPaymentLine[] = (supplier.products ?? []).map((product) => {
     const qty = salesMap.get(product.id) ?? 0;
     return {
       productId: product.id,
