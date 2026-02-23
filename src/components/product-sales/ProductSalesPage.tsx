@@ -28,19 +28,6 @@ export function ProductSalesPage() {
     return map;
   }, [state.productSales]);
 
-  // Flat list of all products across suppliers for easy rendering
-  const allProducts = useMemo(() => {
-    return state.suppliers.flatMap((supplier) =>
-      supplier.products.map((product) => ({
-        supplierId: supplier.id,
-        supplierName: supplier.name,
-        productId: product.id,
-        productName: product.name,
-        costPerUnit: product.costPerUnit,
-      }))
-    );
-  }, [state.suppliers]);
-
   // Supplier cost breakdowns
   const supplierBreakdowns = useMemo(
     () =>
