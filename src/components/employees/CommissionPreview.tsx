@@ -12,31 +12,63 @@ interface ICommissionPreviewProps {
 }
 
 export function CommissionPreview({ employee }: ICommissionPreviewProps) {
+  const isHourly = employee.commissionType === ECommissionType.HOURLY;
   const [previewSales, setPreviewSales] = useState("1000");
+  const [previewHours, setPreviewHours] = useState("8");
 
   const salesAmount = parseFloat(previewSales) || 0;
-  const result = calculateCommission(employee, [salesAmount]);
+  const hoursAmount = parseFloat(previewHours) || 0;
+  const result = isHourly
+    ? calculateCommission(employee, [salesAmount], [hoursAmount])
+    : calculateCommission(employee, [salesAmount]);
 
   return (
     <div className="rounded-md border border-dashed border-border bg-muted/50 p-3 sm:p-4 space-y-3">
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-        <Label className="whitespace-nowrap text-xs">Preview: if sales =</Label>
-        <Input
-          type="number"
-          min="0"
-          step="100"
-          value={previewSales}
-          onChange={(e) => setPreviewSales(e.target.value)}
-          className="w-24 sm:w-32 h-8 text-sm"
-        />
-        <span className="text-sm">
-          earns{" "}
-          <CurrencyDisplay
-            amount={result.commissionAmount}
-            className="font-semibold"
-            colorCode
-          />
-        </span>
+        {isHourly ? (
+          <>
+            <Label className="whitespace-nowrap text-xs">Preview: if hours =</Label>
+            <Input
+              type="number"
+              min="0"
+              step="1"
+              value={previewHours}
+              onChange={(e) => setPreviewHours(e.target.value)}
+              className="w-24 sm:w-32 h-8 text-sm"
+            />
+            <span className="text-sm">
+              earns{" "}
+              <CurrencyDisplay
+                amount={result.commissionAmount}
+                className="font-semibold"
+                colorCode
+              />
+              <span className="text-xs text-muted-foreground ml-1">
+                ({hoursAmount}h × ${employee.hourlyRate ?? 0}/h)
+              </span>
+            </span>
+          </>
+        ) : (
+          <>
+            <Label className="whitespace-nowrap text-xs">Preview: if sales =</Label>
+            <Input
+              type="number"
+              min="0"
+              step="100"
+              value={previewSales}
+              onChange={(e) => setPreviewSales(e.target.value)}
+              className="w-24 sm:w-32 h-8 text-sm"
+            />
+            <span className="text-sm">
+              earns{" "}
+              <CurrencyDisplay
+                amount={result.commissionAmount}
+                className="font-semibold"
+                colorCode
+              />
+            </span>
+          </>
+        )}
       </div>
 
       {result.breakdown.length > 0 && employee.commissionType === ECommissionType.TIERED && (

@@ -3,6 +3,7 @@
 export const ECommissionType = {
   FLAT: "flat",
   TIERED: "tiered",
+  HOURLY: "hourly",
 } as const;
 export type ECommissionType =
   (typeof ECommissionType)[keyof typeof ECommissionType];
@@ -48,6 +49,7 @@ export interface IEmployee {
   flatRate?: number;
   tieredMode?: ETieredMode;
   tiers?: ICommissionTier[];
+  hourlyRate?: number;
 }
 
 // ─── Sales Entry ─────────────────────────────────────────
@@ -60,6 +62,7 @@ export interface IProductSaleEntry {
 export interface IMonthlySalesEntry {
   employeeId: string;
   dailySales: number[];
+  dailyHours?: number[];
 }
 
 // ─── Calculation Results ─────────────────────────────────
@@ -94,6 +97,7 @@ export interface ICommissionResult {
   commissionType: ECommissionType;
   tieredMode?: ETieredMode;
   breakdown: ICommissionTierBreakdown[];
+  totalHours?: number;
 }
 
 export interface IMonthlySummary {

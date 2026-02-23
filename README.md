@@ -5,7 +5,7 @@ A static React app that replaces Excel for small business payment calculations: 
 ## What It Does
 
 - **Supplier Payments:** Calculate how much to pay each supplier based on business-wide product quantities sold (quantity x cost per unit), entered on a dedicated page
-- **Employee Commissions:** Calculate commissions using flat rate, tiered flat, or tiered marginal (tax-bracket style) structures, calculated per-day for accurate tiered results
+- **Employee Commissions:** Calculate commissions using flat rate, tiered flat, tiered marginal (tax-bracket style), or hourly rate structures, calculated per-day for accurate tiered results
 - **Locations & Expenses:** Track rent per location and named monthly expenses (insurance, utilities, etc.) for accurate profit calculation
 - **Dashboard:** At-a-glance summary with charts showing revenue, costs, commissions, fixed costs, and profit
 - **What-If Simulator:** Slide to test "what if sales were X%" and see instant impact on profit (fixed costs remain constant)
@@ -51,7 +51,7 @@ npm run preview
 | **Sales Entry** | Per-employee daily sales form with add/remove day rows and running totals |
 | **Product Sales** | Business-wide product quantity entry grouped by supplier, with per-supplier cost totals |
 | **Suppliers** | CRUD for suppliers and their products (name, cost per unit) |
-| **Employees** | CRUD for employees with commission editor (flat/tiered/marginal) and live preview |
+| **Employees** | CRUD for employees with commission editor (flat/tiered/marginal/hourly) and live preview |
 | **Expenses** | Manage location rent and named monthly operating expenses |
 | **Settings** | Dark mode, currency symbol, JSON import (drag-and-drop), JSON/CSV export, reset |
 
@@ -98,6 +98,7 @@ Commissions are calculated **per day**, then summed for the monthly total. This 
 | **Flat** | `daySales x flatRate` per day |
 | **Tiered Flat** | Each day's entire amount uses the highest qualifying tier rate |
 | **Tiered Marginal** | Tax-bracket style applied per day: each slice taxed at its own rate |
+| **Hourly** | `totalHours x hourlyRate` - pay based on hours worked, independent of sales. Sales are still tracked for revenue. |
 
 ### Example: Employee sells $500 on Day 1, $800 on Day 2, tiers [0 -> 10%, 500 -> 15%]
 
@@ -179,6 +180,12 @@ All data is stored in localStorage under these keys:
         { "threshold": 500, "rate": 0.15 },
         { "threshold": 5000, "rate": 0.20 }
       ]
+    },
+    {
+      "id": "emp-3",
+      "name": "Hourly Employee",
+      "commissionType": "hourly",
+      "hourlyRate": 30
     }
   ]
 }

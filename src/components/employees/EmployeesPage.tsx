@@ -67,6 +67,9 @@ export function EmployeesPage() {
   }
 
   function getCommissionLabel(emp: IEmployee): string {
+    if (emp.commissionType === ECommissionType.HOURLY) {
+      return `Hourly $${emp.hourlyRate ?? 0}/h`;
+    }
     if (emp.commissionType === ECommissionType.FLAT) {
       return `Flat ${formatRate(emp.flatRate ?? 0)}`;
     }

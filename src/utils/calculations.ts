@@ -129,6 +129,23 @@ function calculateTieredMarginalCommission(
   return { amount: totalCommission, breakdown };
 }
 
+function calculateHourlyCommission(
+  totalHours: number,
+  hourlyRate: number
+): { amount: number; breakdown: ICommissionTierBreakdown[] } {
+  return {
+    amount: totalHours * hourlyRate,
+    breakdown: [
+      {
+        rangeStart: 0,
+        rangeEnd: totalHours,
+        rate: hourlyRate,
+        amount: totalHours * hourlyRate,
+      },
+    ],
+  };
+}
+
 function calculateDayCommission(
   employee: IEmployee,
   daySales: number
@@ -144,9 +161,28 @@ function calculateDayCommission(
 
 export function calculateCommission(
   employee: IEmployee,
-  dailySales: number[]
+  dailySales: number[],
+  dailyHours?: number[]
 ): ICommissionResult {
   const totalSales = dailySales.reduce((sum, d) => sum + d, 0);
+
+  if (employee.commissionType === ECommissionType.HOURLY) {
+    const totalHours = (dailyHours ?? []).reduce((sum, h) => sum + h, 0);
+    const hourlyResult = calculateHourlyCommission(
+      totalHours,
+      employee.hourlyRate ?? 0
+    );
+    return {
+      employeeId: employee.id,
+      employeeName: employee.name,
+      totalSales,
+      commissionAmount: hourlyResult.amount,
+      commissionType: employee.commissionType,
+      breakdown: hourlyResult.breakdown,
+      totalHours,
+    };
+  }
+
   let totalCommission = 0;
   const aggregatedBreakdown: ICommissionTierBreakdown[] = [];
 
@@ -197,7 +233,11 @@ export function calculateMonthlySummary(
   // Employee breakdown
   const employeeBreakdown = employees.map((employee) => {
     const salesEntry = sales.find((s) => s.employeeId === employee.id);
-    return calculateCommission(employee, salesEntry?.dailySales ?? []);
+    return calculateCommission(
+      employee,
+      salesEntry?.dailySales ?? [],
+      salesEntry?.dailyHours
+    );
   });
 
   const totalRevenue = employeeBreakdown.reduce(

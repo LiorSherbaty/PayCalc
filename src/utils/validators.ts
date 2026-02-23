@@ -100,9 +100,13 @@ export function validateEmployeesJson(data: unknown): IValidationResult {
       errors.push(`${prefix}: missing or invalid 'name'`);
     }
 
-    if (emp.commissionType !== "flat" && emp.commissionType !== "tiered") {
+    if (
+      emp.commissionType !== "flat" &&
+      emp.commissionType !== "tiered" &&
+      emp.commissionType !== "hourly"
+    ) {
       errors.push(
-        `${prefix}: 'commissionType' must be 'flat' or 'tiered'`
+        `${prefix}: 'commissionType' must be 'flat', 'tiered', or 'hourly'`
       );
       continue;
     }
@@ -110,6 +114,14 @@ export function validateEmployeesJson(data: unknown): IValidationResult {
     if (emp.commissionType === "flat") {
       if (typeof emp.flatRate !== "number" || emp.flatRate < 0) {
         errors.push(`${prefix}: 'flatRate' must be a non-negative number`);
+      }
+    }
+
+    if (emp.commissionType === "hourly") {
+      if (typeof emp.hourlyRate !== "number" || emp.hourlyRate < 0) {
+        errors.push(
+          `${prefix}: 'hourlyRate' must be a non-negative number`
+        );
       }
     }
 

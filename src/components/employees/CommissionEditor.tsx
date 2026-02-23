@@ -14,6 +14,7 @@ import type { IEmployee } from "@/types";
 
 const DEFAULT_TIER_INCREMENT = 1000;
 const DEFAULT_TIER_RATE = 0.1;
+const DEFAULT_HOURLY_RATE = 30;
 
 interface ICommissionEditorProps {
   employee: IEmployee;
@@ -32,6 +33,16 @@ export function CommissionEditor({
         flatRate: employee.flatRate ?? DEFAULT_TIER_RATE,
         tieredMode: undefined,
         tiers: undefined,
+        hourlyRate: undefined,
+      });
+    } else if (type === ECommissionType.HOURLY) {
+      onChange({
+        ...employee,
+        commissionType: ECommissionType.HOURLY,
+        hourlyRate: employee.hourlyRate ?? DEFAULT_HOURLY_RATE,
+        flatRate: undefined,
+        tieredMode: undefined,
+        tiers: undefined,
       });
     } else {
       onChange({
@@ -40,6 +51,7 @@ export function CommissionEditor({
         tieredMode: employee.tieredMode ?? ETieredMode.MARGINAL,
         tiers: employee.tiers ?? [{ threshold: 0, rate: DEFAULT_TIER_RATE }],
         flatRate: undefined,
+        hourlyRate: undefined,
       });
     }
   }
@@ -51,6 +63,10 @@ export function CommissionEditor({
 
   function setFlatRate(rate: number) {
     onChange({ ...employee, flatRate: rate });
+  }
+
+  function setHourlyRate(rate: number) {
+    onChange({ ...employee, hourlyRate: rate });
   }
 
   function updateTierThreshold(index: number, threshold: number) {
@@ -97,6 +113,7 @@ export function CommissionEditor({
             <SelectContent>
               <SelectItem value={ECommissionType.FLAT}>Flat Rate</SelectItem>
               <SelectItem value={ECommissionType.TIERED}>Tiered</SelectItem>
+              <SelectItem value={ECommissionType.HOURLY}>Hourly Rate</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -136,6 +153,21 @@ export function CommissionEditor({
             step="0.1"
             displayMultiplier={100}
             decimalPlaces={1}
+            className="w-full sm:w-32"
+          />
+        </div>
+      )}
+
+      {/* Hourly Rate Input */}
+      {employee.commissionType === ECommissionType.HOURLY && (
+        <div className="space-y-2">
+          <Label>Hourly Rate ($)</Label>
+          <NumericInput
+            value={employee.hourlyRate ?? 0}
+            onChange={setHourlyRate}
+            min={0}
+            step="1"
+            decimalPlaces={2}
             className="w-full sm:w-32"
           />
         </div>

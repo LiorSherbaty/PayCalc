@@ -24,6 +24,7 @@ import { CurrencyDisplay } from "@/components/shared/CurrencyDisplay";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useApp } from "@/context/AppContext";
 import { calculateMonthlySummary } from "@/utils/calculations";
+import { ECommissionType } from "@/types";
 import type { IMonthlySalesEntry } from "@/types";
 
 export function SalesEntryPage() {
@@ -36,7 +37,14 @@ export function SalesEntryPage() {
   } = useApp();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [dailySalesInputs, setDailySalesInputs] = useState<string[]>([""]);
+  const [dailyHoursInputs, setDailyHoursInputs] = useState<string[]>([""]);
   const [showClearDialog, setShowClearDialog] = useState(false);
+
+  const selectedEmployee = state.employees.find(
+    (e) => e.id === selectedEmployeeId
+  );
+  const isSelectedHourly =
+    selectedEmployee?.commissionType === ECommissionType.HOURLY;
 
   const availableEmployees = state.employees.filter(
     (emp) => !state.sales.some((s) => s.employeeId === emp.id)
@@ -62,10 +70,12 @@ export function SalesEntryPage() {
 
   function handleAddDay() {
     setDailySalesInputs((prev) => [...prev, ""]);
+    setDailyHoursInputs((prev) => [...prev, ""]);
   }
 
   function handleRemoveDay(index: number) {
     setDailySalesInputs((prev) => prev.filter((_, i) => i !== index));
+    setDailyHoursInputs((prev) => prev.filter((_, i) => i !== index));
   }
 
   function handleDaySalesChange(index: number, value: string) {
@@ -74,18 +84,30 @@ export function SalesEntryPage() {
     );
   }
 
+  function handleDayHoursChange(index: number, value: string) {
+    setDailyHoursInputs((prev) =>
+      prev.map((v, i) => (i === index ? value : v))
+    );
+  }
+
   function handleAddEntry() {
     if (!selectedEmployeeId) return;
 
-    const dailySales = dailySalesInputs
-      .map((val) => parseFloat(val) || 0)
-      .filter((val) => val > 0);
+    const dailySales = dailySalesInputs.map((val) => parseFloat(val) || 0);
+    const dailyHours = isSelectedHourly
+      ? dailyHoursInputs.map((val) => parseFloat(val) || 0)
+      : undefined;
 
-    if (dailySales.length === 0) return;
+    const hasData = isSelectedHourly
+      ? dailyHours!.some((h) => h > 0) || dailySales.some((s) => s > 0)
+      : dailySales.some((s) => s > 0);
+
+    if (!hasData) return;
 
     const entry: IMonthlySalesEntry = {
       employeeId: selectedEmployeeId,
       dailySales,
+      dailyHours,
     };
 
     const existing = state.sales.find(
@@ -99,11 +121,16 @@ export function SalesEntryPage() {
 
     setSelectedEmployeeId("");
     setDailySalesInputs([""]);
+    setDailyHoursInputs([""]);
   }
 
   function handleEditEntry(entry: IMonthlySalesEntry) {
     setSelectedEmployeeId(entry.employeeId);
     setDailySalesInputs(entry.dailySales.map(String));
+    setDailyHoursInputs(
+      entry.dailyHours?.map(String) ??
+        entry.dailySales.map(() => "")
+    );
     deleteSalesEntry(entry.employeeId);
   }
 
@@ -152,7 +179,12 @@ export function SalesEntryPage() {
 
           {/* Daily Sales Rows */}
           <div className="space-y-2">
-            <Label>Daily Sales ($)</Label>
+            <div className="flex items-center gap-4">
+              <Label>Daily Sales ($)</Label>
+              {isSelectedHourly && (
+                <Label className="text-muted-foreground">Hours</Label>
+              )}
+            </div>
             <div className="space-y-2">
               {dailySalesInputs.map((value, index) => (
                 <div key={index} className="flex items-center gap-2">
@@ -170,6 +202,19 @@ export function SalesEntryPage() {
                     }
                     className="w-full sm:w-40"
                   />
+                  {isSelectedHourly && (
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      placeholder="0"
+                      value={dailyHoursInputs[index] ?? ""}
+                      onChange={(e) =>
+                        handleDayHoursChange(index, e.target.value)
+                      }
+                      className="w-full sm:w-28"
+                    />
+                  )}
                   {dailySalesInputs.length > 1 && (
                     <Button
                       variant="ghost"
@@ -198,13 +243,31 @@ export function SalesEntryPage() {
                   amount={dailyTotal}
                   className="font-semibold text-foreground"
                 />
+                {isSelectedHourly && (
+                  <span className="ml-3">
+                    Hours:{" "}
+                    <span className="font-semibold text-foreground">
+                      {dailyHoursInputs
+                        .reduce((sum, val) => sum + (parseFloat(val) || 0), 0)
+                        .toFixed(1)}
+                    </span>
+                  </span>
+                )}
               </span>
             </div>
           </div>
 
           <Button
             onClick={handleAddEntry}
-            disabled={!selectedEmployeeId || dailyTotal <= 0}
+            disabled={
+              !selectedEmployeeId ||
+              (isSelectedHourly
+                ? dailyTotal <= 0 &&
+                  dailyHoursInputs.every(
+                    (v) => (parseFloat(v) || 0) <= 0
+                  )
+                : dailyTotal <= 0)
+            }
             className="w-full sm:w-auto"
           >
             <Plus className="mr-2 h-4 w-4" />
@@ -247,6 +310,12 @@ export function SalesEntryPage() {
                       (sum, d) => sum + d,
                       0
                     );
+                    const isHourly =
+                      employee?.commissionType === ECommissionType.HOURLY;
+                    const totalHours = entry.dailyHours?.reduce(
+                      (sum, h) => sum + h,
+                      0
+                    );
 
                     return (
                       <TableRow key={entry.employeeId}>
@@ -255,6 +324,11 @@ export function SalesEntryPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           <CurrencyDisplay amount={totalSales} />
+                          {isHourly && totalHours != null && (
+                            <div className="text-xs text-muted-foreground">
+                              {totalHours.toFixed(1)}h
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell className="text-right hidden sm:table-cell">
                           {entry.dailySales.length}
