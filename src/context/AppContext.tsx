@@ -9,6 +9,9 @@ import type {
   IAppState,
   ISupplier,
   IEmployee,
+  ILocation,
+  IExpenseItem,
+  IProductSaleEntry,
   IMonthlySalesEntry,
   IAppSettings,
   IProduct,
@@ -18,6 +21,7 @@ import { ECommissionType, ETieredMode } from "@/types";
 import defaultSuppliersData from "@/data/default-suppliers.json";
 import defaultEmployeesData from "@/data/default-employees.json";
 import defaultSalesData from "@/data/default-sales.json";
+import defaultProductSalesData from "@/data/default-product-sales.json";
 
 // ─── Storage Keys ────────────────────────────────────────
 
@@ -25,6 +29,9 @@ const STORAGE_KEYS = {
   suppliers: "paycalc_suppliers",
   employees: "paycalc_employees",
   sales: "paycalc_sales",
+  productSales: "paycalc_product_sales",
+  locations: "paycalc_locations",
+  expenses: "paycalc_expenses",
   settings: "paycalc_settings",
 } as const;
 
@@ -58,6 +65,12 @@ function buildInitialState(): IAppState {
       STORAGE_KEYS.sales,
       defaultSalesData.sales as IMonthlySalesEntry[]
     ),
+    productSales: loadFromStorage<IProductSaleEntry[]>(
+      STORAGE_KEYS.productSales,
+      defaultProductSalesData.productSales as IProductSaleEntry[]
+    ),
+    locations: loadFromStorage<ILocation[]>(STORAGE_KEYS.locations, []),
+    expenses: loadFromStorage<IExpenseItem[]>(STORAGE_KEYS.expenses, []),
     settings: loadFromStorage<IAppSettings>(
       STORAGE_KEYS.settings,
       DEFAULT_SETTINGS
@@ -91,6 +104,16 @@ type AppAction =
   | { type: "UPDATE_SALES_ENTRY"; payload: IMonthlySalesEntry }
   | { type: "DELETE_SALES_ENTRY"; payload: string }
   | { type: "CLEAR_SALES" }
+  // Product Sales (business-wide)
+  | { type: "SET_PRODUCT_SALES"; payload: IProductSaleEntry[] }
+  // Locations
+  | { type: "ADD_LOCATION"; payload: ILocation }
+  | { type: "UPDATE_LOCATION"; payload: ILocation }
+  | { type: "DELETE_LOCATION"; payload: string }
+  // Expenses
+  | { type: "ADD_EXPENSE"; payload: IExpenseItem }
+  | { type: "UPDATE_EXPENSE"; payload: IExpenseItem }
+  | { type: "DELETE_EXPENSE"; payload: string }
   // Settings
   | { type: "UPDATE_SETTINGS"; payload: Partial<IAppSettings> }
   // Bulk import
@@ -206,6 +229,46 @@ function appReducer(state: IAppState, action: AppAction): IAppState {
     case "CLEAR_SALES":
       return { ...state, sales: [] };
 
+    // ── Product Sales ──
+    case "SET_PRODUCT_SALES":
+      return { ...state, productSales: action.payload };
+
+    // ── Locations ──
+    case "ADD_LOCATION":
+      return { ...state, locations: [...state.locations, action.payload] };
+
+    case "UPDATE_LOCATION":
+      return {
+        ...state,
+        locations: state.locations.map((l) =>
+          l.id === action.payload.id ? action.payload : l
+        ),
+      };
+
+    case "DELETE_LOCATION":
+      return {
+        ...state,
+        locations: state.locations.filter((l) => l.id !== action.payload),
+      };
+
+    // ── Expenses ──
+    case "ADD_EXPENSE":
+      return { ...state, expenses: [...state.expenses, action.payload] };
+
+    case "UPDATE_EXPENSE":
+      return {
+        ...state,
+        expenses: state.expenses.map((e) =>
+          e.id === action.payload.id ? action.payload : e
+        ),
+      };
+
+    case "DELETE_EXPENSE":
+      return {
+        ...state,
+        expenses: state.expenses.filter((e) => e.id !== action.payload),
+      };
+
     // ── Settings ──
     case "UPDATE_SETTINGS":
       return {
@@ -226,6 +289,10 @@ function appReducer(state: IAppState, action: AppAction): IAppState {
         suppliers: defaultSuppliersData.suppliers as ISupplier[],
         employees: defaultEmployeesData.employees as IEmployee[],
         sales: defaultSalesData.sales as IMonthlySalesEntry[],
+        productSales:
+          defaultProductSalesData.productSales as IProductSaleEntry[],
+        locations: [],
+        expenses: [],
         settings: DEFAULT_SETTINGS,
       };
     }
@@ -254,6 +321,13 @@ interface IAppContext {
   updateSalesEntry: (entry: IMonthlySalesEntry) => void;
   deleteSalesEntry: (employeeId: string) => void;
   clearSales: () => void;
+  setProductSales: (productSales: IProductSaleEntry[]) => void;
+  addLocation: (name: string, monthlyRent: number) => void;
+  updateLocation: (location: ILocation) => void;
+  deleteLocation: (id: string) => void;
+  addExpense: (name: string, amount: number) => void;
+  updateExpense: (expense: IExpenseItem) => void;
+  deleteExpense: (id: string) => void;
   updateSettings: (settings: Partial<IAppSettings>) => void;
   importSuppliers: (suppliers: ISupplier[]) => void;
   importEmployees: (employees: IEmployee[]) => void;
@@ -277,6 +351,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
         JSON.stringify(state.employees)
       );
       localStorage.setItem(STORAGE_KEYS.sales, JSON.stringify(state.sales));
+      localStorage.setItem(
+        STORAGE_KEYS.productSales,
+        JSON.stringify(state.productSales)
+      );
+      localStorage.setItem(
+        STORAGE_KEYS.locations,
+        JSON.stringify(state.locations)
+      );
+      localStorage.setItem(
+        STORAGE_KEYS.expenses,
+        JSON.stringify(state.expenses)
+      );
       localStorage.setItem(
         STORAGE_KEYS.settings,
         JSON.stringify(state.settings)
@@ -360,6 +446,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     clearSales: () => {
       dispatch({ type: "CLEAR_SALES" });
+    },
+
+    setProductSales: (productSales: IProductSaleEntry[]) => {
+      dispatch({ type: "SET_PRODUCT_SALES", payload: productSales });
+    },
+
+    addLocation: (name: string, monthlyRent: number) => {
+      dispatch({
+        type: "ADD_LOCATION",
+        payload: { id: crypto.randomUUID(), name, monthlyRent },
+      });
+    },
+
+    updateLocation: (location: ILocation) => {
+      dispatch({ type: "UPDATE_LOCATION", payload: location });
+    },
+
+    deleteLocation: (id: string) => {
+      dispatch({ type: "DELETE_LOCATION", payload: id });
+    },
+
+    addExpense: (name: string, amount: number) => {
+      dispatch({
+        type: "ADD_EXPENSE",
+        payload: { id: crypto.randomUUID(), name, amount },
+      });
+    },
+
+    updateExpense: (expense: IExpenseItem) => {
+      dispatch({ type: "UPDATE_EXPENSE", payload: expense });
+    },
+
+    deleteExpense: (id: string) => {
+      dispatch({ type: "DELETE_EXPENSE", payload: id });
     },
 
     updateSettings: (settings: Partial<IAppSettings>) => {

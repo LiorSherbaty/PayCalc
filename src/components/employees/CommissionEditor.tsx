@@ -1,6 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -9,8 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { NumericInput } from "@/components/shared/NumericInput";
 import { ECommissionType, ETieredMode } from "@/types";
-import type { IEmployee, ICommissionTier } from "@/types";
+import type { IEmployee } from "@/types";
 
 const DEFAULT_TIER_INCREMENT = 1000;
 const DEFAULT_TIER_RATE = 0.1;
@@ -49,28 +49,19 @@ export function CommissionEditor({
     onChange({ ...employee, tieredMode: mode });
   }
 
-  function setFlatRate(value: string) {
-    const rate = parseFloat(value);
-    if (!Number.isFinite(rate)) return;
-    onChange({ ...employee, flatRate: Math.max(0, Math.min(rate, 100)) / 100 });
+  function setFlatRate(rate: number) {
+    onChange({ ...employee, flatRate: rate });
   }
 
-  function updateTier(
-    index: number,
-    field: keyof ICommissionTier,
-    value: string
-  ) {
+  function updateTierThreshold(index: number, threshold: number) {
     const tiers = [...(employee.tiers ?? [])];
-    const num = parseFloat(value);
-    if (!Number.isFinite(num)) return;
+    tiers[index] = { ...tiers[index], threshold };
+    onChange({ ...employee, tiers });
+  }
 
-    tiers[index] = {
-      ...tiers[index],
-      [field]:
-        field === "rate"
-          ? Math.max(0, Math.min(num, 100)) / 100
-          : Math.max(0, num),
-    };
+  function updateTierRate(index: number, rate: number) {
+    const tiers = [...(employee.tiers ?? [])];
+    tiers[index] = { ...tiers[index], rate };
     onChange({ ...employee, tiers });
   }
 
@@ -137,13 +128,14 @@ export function CommissionEditor({
       {employee.commissionType === ECommissionType.FLAT && (
         <div className="space-y-2">
           <Label>Commission Rate (%)</Label>
-          <Input
-            type="number"
-            min="0"
-            max="100"
+          <NumericInput
+            value={employee.flatRate ?? 0}
+            onChange={setFlatRate}
+            min={0}
+            max={1}
             step="0.1"
-            value={((employee.flatRate ?? 0) * 100).toFixed(1)}
-            onChange={(e) => setFlatRate(e.target.value)}
+            displayMultiplier={100}
+            decimalPlaces={1}
             className="w-full sm:w-32"
           />
         </div>
@@ -162,29 +154,25 @@ export function CommissionEditor({
                 <span className="text-xs text-muted-foreground whitespace-nowrap">
                   From $
                 </span>
-                <Input
-                  type="number"
-                  min="0"
-                  step="1"
+                <NumericInput
                   value={tier.threshold}
-                  onChange={(e) =>
-                    updateTier(index, "threshold", e.target.value)
-                  }
+                  onChange={(val) => updateTierThreshold(index, val)}
+                  min={0}
+                  step="1"
                   className="w-full sm:w-28"
                 />
                 <span className="text-xs text-muted-foreground whitespace-nowrap">
                   at
                 </span>
                 <div className="flex items-center gap-1 w-full sm:w-auto">
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
+                  <NumericInput
+                    value={tier.rate}
+                    onChange={(val) => updateTierRate(index, val)}
+                    min={0}
+                    max={1}
                     step="0.1"
-                    value={(tier.rate * 100).toFixed(1)}
-                    onChange={(e) =>
-                      updateTier(index, "rate", e.target.value)
-                    }
+                    displayMultiplier={100}
+                    decimalPlaces={1}
                     className="w-full sm:w-24"
                   />
                   <span className="text-xs text-muted-foreground">%</span>

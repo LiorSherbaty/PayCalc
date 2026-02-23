@@ -2,8 +2,10 @@ import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   ShoppingCart,
+  Package,
   Truck,
   Users,
+  Receipt,
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -11,8 +13,10 @@ import { cn } from "@/lib/utils";
 const NAV_ITEMS = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/sales", label: "Sales Entry", icon: ShoppingCart },
+  { to: "/product-sales", label: "Product Sales", icon: Package },
   { to: "/suppliers", label: "Suppliers", icon: Truck },
   { to: "/employees", label: "Employees", icon: Users },
+  { to: "/expenses", label: "Expenses", icon: Receipt },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 

@@ -15,15 +15,17 @@ interface IPaymentPieChartProps {
   summary: IMonthlySummary;
 }
 
-const COLORS = ["#f97316", "#a855f7", "#22c55e"];
+const COLORS = ["#f97316", "#a855f7", "#e11d48", "#22c55e"];
 
 export function PaymentPieChart({ summary }: IPaymentPieChartProps) {
   const { state } = useApp();
   const symbol = state.settings.currencySymbol;
 
+  const fixedCosts = summary.totalLocationCosts + summary.totalExpenses;
   const data = [
     { name: "Supplier Costs", value: summary.totalSupplierCost },
     { name: "Commissions", value: summary.totalCommissions },
+    { name: "Fixed Costs", value: fixedCosts },
     {
       name: "Profit",
       value: Math.max(0, summary.grossProfit),

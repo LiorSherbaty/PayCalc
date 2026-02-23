@@ -148,8 +148,15 @@ export function SettingsPage() {
 
   const summary = useMemo(
     () =>
-      calculateMonthlySummary(state.suppliers, state.employees, state.sales),
-    [state.suppliers, state.employees, state.sales]
+      calculateMonthlySummary(
+        state.suppliers,
+        state.employees,
+        state.sales,
+        state.productSales,
+        state.locations,
+        state.expenses
+      ),
+    [state.suppliers, state.employees, state.sales, state.productSales, state.locations, state.expenses]
   );
 
   function exportResultsCsv() {
@@ -166,10 +173,22 @@ export function SettingsPage() {
         (s) =>
           `Supplier Cost,"${s.supplierName}",${formatCurrency(s.total, symbol)},"${s.lines.filter((l) => l.quantitySold > 0).map((l) => `${l.productName}: ${l.quantitySold} units`).join("; ")}"`
       ),
+      // Location costs
+      ...state.locations.map(
+        (l) =>
+          `Location Rent,"${l.name}",${formatCurrency(l.monthlyRent, symbol)},`
+      ),
+      // Expenses
+      ...state.expenses.map(
+        (e) =>
+          `Expense,"${e.name}",${formatCurrency(e.amount, symbol)},`
+      ),
       "",
       `Total Revenue,,${formatCurrency(summary.totalRevenue, symbol)},`,
       `Total Supplier Costs,,${formatCurrency(summary.totalSupplierCost, symbol)},`,
       `Total Commissions,,${formatCurrency(summary.totalCommissions, symbol)},`,
+      `Total Location Costs,,${formatCurrency(summary.totalLocationCosts, symbol)},`,
+      `Total Expenses,,${formatCurrency(summary.totalExpenses, symbol)},`,
       `Gross Profit,,${formatCurrency(summary.grossProfit, symbol)},`,
     ];
     const blob = new Blob([lines.join("\n")], {

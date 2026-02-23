@@ -2,65 +2,27 @@
   "sales": [
     {
       "employeeId": "emp-1",
-      "totalSalesDollars": 12500,
-      "productSales": [
-        { "productId": "prod-7", "quantitySold": 15 },
-        { "productId": "prod-8", "quantitySold": 20 },
-        { "productId": "prod-9", "quantitySold": 10 },
-        { "productId": "prod-1", "quantitySold": 30 },
-        { "productId": "prod-4", "quantitySold": 8 }
-      ]
+      "dailySales": [2500, 3000, 2000, 2500, 2500]
     },
     {
       "employeeId": "emp-2",
-      "totalSalesDollars": 6000,
-      "productSales": [
-        { "productId": "prod-2", "quantitySold": 25 },
-        { "productId": "prod-5", "quantitySold": 40 },
-        { "productId": "prod-10", "quantitySold": 100 },
-        { "productId": "prod-13", "quantitySold": 15 }
-      ]
+      "dailySales": [1200, 1500, 800, 1000, 1500]
     },
     {
       "employeeId": "emp-3",
-      "totalSalesDollars": 15000,
-      "productSales": [
-        { "productId": "prod-11", "quantitySold": 200 },
-        { "productId": "prod-12", "quantitySold": 300 },
-        { "productId": "prod-10", "quantitySold": 500 },
-        { "productId": "prod-3", "quantitySold": 25 }
-      ]
+      "dailySales": [3000, 3500, 2500, 3000, 3000]
     },
     {
       "employeeId": "emp-4",
-      "totalSalesDollars": 4200,
-      "productSales": [
-        { "productId": "prod-4", "quantitySold": 12 },
-        { "productId": "prod-6", "quantitySold": 8 },
-        { "productId": "prod-14", "quantitySold": 20 },
-        { "productId": "prod-1", "quantitySold": 15 }
-      ]
+      "dailySales": [800, 1000, 900, 700, 800]
     },
     {
       "employeeId": "emp-5",
-      "totalSalesDollars": 9800,
-      "productSales": [
-        { "productId": "prod-7", "quantitySold": 8 },
-        { "productId": "prod-9", "quantitySold": 12 },
-        { "productId": "prod-8", "quantitySold": 15 },
-        { "productId": "prod-13", "quantitySold": 25 },
-        { "productId": "prod-5", "quantitySold": 30 }
-      ]
+      "dailySales": [2000, 1800, 2200, 1900, 1900]
     },
     {
       "employeeId": "emp-6",
-      "totalSalesDollars": 3500,
-      "productSales": [
-        { "productId": "prod-1", "quantitySold": 40 },
-        { "productId": "prod-2", "quantitySold": 20 },
-        { "productId": "prod-3", "quantitySold": 10 },
-        { "productId": "prod-10", "quantitySold": 80 }
-      ]
+      "dailySales": [700, 800, 600, 700, 700]
     }
   ]
 }

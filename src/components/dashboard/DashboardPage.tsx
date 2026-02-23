@@ -20,9 +20,12 @@ export function DashboardPage() {
       calculateMonthlySummary(
         state.suppliers,
         state.employees,
-        state.sales
+        state.sales,
+        state.productSales,
+        state.locations,
+        state.expenses
       ),
-    [state.suppliers, state.employees, state.sales]
+    [state.suppliers, state.employees, state.sales, state.productSales, state.locations, state.expenses]
   );
 
   const hasSalesData = state.sales.length > 0;

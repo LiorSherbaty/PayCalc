@@ -1,6 +1,8 @@
 import type {
   ISupplier,
   IEmployee,
+  ILocation,
+  IExpenseItem,
   IProductSaleEntry,
   IMonthlySalesEntry,
   ISupplierPaymentResult,
@@ -127,31 +129,53 @@ function calculateTieredMarginalCommission(
   return { amount: totalCommission, breakdown };
 }
 
+function calculateDayCommission(
+  employee: IEmployee,
+  daySales: number
+): { amount: number; breakdown: ICommissionTierBreakdown[] } {
+  if (employee.commissionType === ECommissionType.FLAT) {
+    return calculateFlatCommission(daySales, employee.flatRate ?? 0);
+  } else if (employee.tieredMode === ETieredMode.FLAT) {
+    return calculateTieredFlatCommission(daySales, employee.tiers ?? []);
+  } else {
+    return calculateTieredMarginalCommission(daySales, employee.tiers ?? []);
+  }
+}
+
 export function calculateCommission(
   employee: IEmployee,
-  totalSales: number
+  dailySales: number[]
 ): ICommissionResult {
-  let result: { amount: number; breakdown: ICommissionTierBreakdown[] };
+  const totalSales = dailySales.reduce((sum, d) => sum + d, 0);
+  let totalCommission = 0;
+  const aggregatedBreakdown: ICommissionTierBreakdown[] = [];
 
-  if (employee.commissionType === ECommissionType.FLAT) {
-    result = calculateFlatCommission(totalSales, employee.flatRate ?? 0);
-  } else if (employee.tieredMode === ETieredMode.FLAT) {
-    result = calculateTieredFlatCommission(totalSales, employee.tiers ?? []);
-  } else {
-    result = calculateTieredMarginalCommission(
-      totalSales,
-      employee.tiers ?? []
-    );
+  for (const daySale of dailySales) {
+    if (daySale <= 0) continue;
+    const dayResult = calculateDayCommission(employee, daySale);
+    totalCommission += dayResult.amount;
+
+    for (const tier of dayResult.breakdown) {
+      const existing = aggregatedBreakdown.find(
+        (b) => b.rate === tier.rate
+      );
+      if (existing) {
+        existing.rangeEnd += tier.rangeEnd - tier.rangeStart;
+        existing.amount += tier.amount;
+      } else {
+        aggregatedBreakdown.push({ ...tier });
+      }
+    }
   }
 
   return {
     employeeId: employee.id,
     employeeName: employee.name,
     totalSales,
-    commissionAmount: result.amount,
+    commissionAmount: totalCommission,
     commissionType: employee.commissionType,
     tieredMode: employee.tieredMode,
-    breakdown: result.breakdown,
+    breakdown: aggregatedBreakdown,
   };
 }
 
@@ -160,32 +184,20 @@ export function calculateCommission(
 export function calculateMonthlySummary(
   suppliers: ISupplier[],
   employees: IEmployee[],
-  sales: IMonthlySalesEntry[]
+  sales: IMonthlySalesEntry[],
+  productSales: IProductSaleEntry[] = [],
+  locations: ILocation[] = [],
+  expenses: IExpenseItem[] = []
 ): IMonthlySummary {
-  // Aggregate all product sales across all employees
-  const allProductSales: IProductSaleEntry[] = [];
-  for (const entry of sales) {
-    for (const ps of entry.productSales) {
-      const existing = allProductSales.find(
-        (e) => e.productId === ps.productId
-      );
-      if (existing) {
-        existing.quantitySold += ps.quantitySold;
-      } else {
-        allProductSales.push({ ...ps });
-      }
-    }
-  }
-
-  // Supplier breakdown
+  // Supplier breakdown (from business-wide product sales)
   const supplierBreakdown = suppliers.map((supplier) =>
-    calculateSupplierPayment(supplier, allProductSales)
+    calculateSupplierPayment(supplier, productSales)
   );
 
   // Employee breakdown
   const employeeBreakdown = employees.map((employee) => {
     const salesEntry = sales.find((s) => s.employeeId === employee.id);
-    return calculateCommission(employee, salesEntry?.totalSalesDollars ?? 0);
+    return calculateCommission(employee, salesEntry?.dailySales ?? []);
   });
 
   const totalRevenue = employeeBreakdown.reduce(
@@ -200,7 +212,17 @@ export function calculateMonthlySummary(
     (sum, e) => sum + e.commissionAmount,
     0
   );
-  const grossProfit = totalRevenue - totalSupplierCost - totalCommissions;
+  const totalLocationCosts = locations.reduce(
+    (sum, l) => sum + l.monthlyRent,
+    0
+  );
+  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const grossProfit =
+    totalRevenue -
+    totalSupplierCost -
+    totalCommissions -
+    totalLocationCosts -
+    totalExpenses;
   const profitMarginPercent =
     totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
 
@@ -208,6 +230,8 @@ export function calculateMonthlySummary(
     totalRevenue,
     totalSupplierCost,
     totalCommissions,
+    totalLocationCosts,
+    totalExpenses,
     grossProfit,
     profitMarginPercent,
     supplierBreakdown,

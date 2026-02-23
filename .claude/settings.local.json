@@ -12,7 +12,11 @@
       "Bash(head:*)",
       "Bash(cd /c/Users/LiorS/Desktop/PaymentsCalculator && npx tsc --noEmit 2>&1)",
       "Bash(cd /c/Users/LiorS/Desktop/PaymentsCalculator && npm run build 2>&1)",
-      "Bash(true:*)"
+      "Bash(true:*)",
+      "Bash(cd \"/c/Users/LiorS/My Drive/Lior/Projects/PayCalc\" && npx tsc --noEmit 2>&1)",
+      "Bash(tail:*)",
+      "Bash(cd \"/c/Users/LiorS/My Drive/Lior/Projects/PayCalc\" && npx vite build 2>&1)",
+      "Bash(echo ✓ TypeScript OK:*)"
     ]
   }
 }

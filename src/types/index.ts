@@ -59,8 +59,7 @@ export interface IProductSaleEntry {
 
 export interface IMonthlySalesEntry {
   employeeId: string;
-  totalSalesDollars: number;
-  productSales: IProductSaleEntry[];
+  dailySales: number[];
 }
 
 // ─── Calculation Results ─────────────────────────────────
@@ -101,10 +100,26 @@ export interface IMonthlySummary {
   totalRevenue: number;
   totalSupplierCost: number;
   totalCommissions: number;
+  totalLocationCosts: number;
+  totalExpenses: number;
   grossProfit: number;
   profitMarginPercent: number;
   supplierBreakdown: ISupplierPaymentResult[];
   employeeBreakdown: ICommissionResult[];
+}
+
+// ─── Locations & Expenses ────────────────────────────────
+
+export interface ILocation {
+  id: string;
+  name: string;
+  monthlyRent: number;
+}
+
+export interface IExpenseItem {
+  id: string;
+  name: string;
+  amount: number;
 }
 
 // ─── App Settings ────────────────────────────────────────
@@ -120,6 +135,9 @@ export interface IAppState {
   suppliers: ISupplier[];
   employees: IEmployee[];
   sales: IMonthlySalesEntry[];
+  productSales: IProductSaleEntry[];
+  locations: ILocation[];
+  expenses: IExpenseItem[];
   settings: IAppSettings;
 }
 

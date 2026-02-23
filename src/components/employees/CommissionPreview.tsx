@@ -15,7 +15,7 @@ export function CommissionPreview({ employee }: ICommissionPreviewProps) {
   const [previewSales, setPreviewSales] = useState("1000");
 
   const salesAmount = parseFloat(previewSales) || 0;
-  const result = calculateCommission(employee, salesAmount);
+  const result = calculateCommission(employee, [salesAmount]);
 
   return (
     <div className="rounded-md border border-dashed border-border bg-muted/50 p-3 sm:p-4 space-y-3">

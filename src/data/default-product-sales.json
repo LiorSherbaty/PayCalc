@@ -1,0 +1,18 @@
+{
+  "productSales": [
+    { "productId": "prod-1", "quantitySold": 85 },
+    { "productId": "prod-2", "quantitySold": 45 },
+    { "productId": "prod-3", "quantitySold": 35 },
+    { "productId": "prod-4", "quantitySold": 20 },
+    { "productId": "prod-5", "quantitySold": 70 },
+    { "productId": "prod-6", "quantitySold": 8 },
+    { "productId": "prod-7", "quantitySold": 23 },
+    { "productId": "prod-8", "quantitySold": 35 },
+    { "productId": "prod-9", "quantitySold": 22 },
+    { "productId": "prod-10", "quantitySold": 680 },
+    { "productId": "prod-11", "quantitySold": 200 },
+    { "productId": "prod-12", "quantitySold": 300 },
+    { "productId": "prod-13", "quantitySold": 40 },
+    { "productId": "prod-14", "quantitySold": 20 }
+  ]
+}

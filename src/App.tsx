@@ -7,6 +7,8 @@ import { DashboardPage } from "@/components/dashboard/DashboardPage";
 import { SalesEntryPage } from "@/components/sales/SalesEntryPage";
 import { SuppliersPage } from "@/components/suppliers/SuppliersPage";
 import { EmployeesPage } from "@/components/employees/EmployeesPage";
+import { ProductSalesPage } from "@/components/product-sales/ProductSalesPage";
+import { ExpensesPage } from "@/components/expenses/ExpensesPage";
 import { SettingsPage } from "@/components/settings/SettingsPage";
 
 export default function App() {
@@ -20,6 +22,8 @@ export default function App() {
               <Route path="sales" element={<SalesEntryPage />} />
               <Route path="suppliers" element={<SuppliersPage />} />
               <Route path="employees" element={<EmployeesPage />} />
+              <Route path="product-sales" element={<ProductSalesPage />} />
+              <Route path="expenses" element={<ExpensesPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
           </Routes>

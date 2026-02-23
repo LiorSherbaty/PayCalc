@@ -7,7 +7,7 @@ import { CurrencyDisplay } from "@/components/shared/CurrencyDisplay";
 import { useApp } from "@/context/AppContext";
 import { calculateMonthlySummary } from "@/utils/calculations";
 import { formatPercent } from "@/utils/formatters";
-import type { IMonthlySalesEntry } from "@/types";
+import type { IMonthlySalesEntry, IProductSaleEntry } from "@/types";
 
 export function WhatIfSimulator() {
   const { state } = useApp();
@@ -17,19 +17,31 @@ export function WhatIfSimulator() {
     () =>
       state.sales.map((entry) => ({
         ...entry,
-        totalSalesDollars: entry.totalSalesDollars * (multiplier / 100),
-        productSales: entry.productSales.map((ps) => ({
-          ...ps,
-          quantitySold: Math.round(ps.quantitySold * (multiplier / 100)),
-        })),
+        dailySales: entry.dailySales.map((d) => d * (multiplier / 100)),
       })),
     [state.sales, multiplier]
   );
 
+  const adjustedProductSales: IProductSaleEntry[] = useMemo(
+    () =>
+      state.productSales.map((ps) => ({
+        ...ps,
+        quantitySold: Math.round(ps.quantitySold * (multiplier / 100)),
+      })),
+    [state.productSales, multiplier]
+  );
+
   const baseSummary = useMemo(
     () =>
-      calculateMonthlySummary(state.suppliers, state.employees, state.sales),
-    [state.suppliers, state.employees, state.sales]
+      calculateMonthlySummary(
+        state.suppliers,
+        state.employees,
+        state.sales,
+        state.productSales,
+        state.locations,
+        state.expenses
+      ),
+    [state.suppliers, state.employees, state.sales, state.productSales, state.locations, state.expenses]
   );
 
   const whatIfSummary = useMemo(
@@ -37,14 +49,17 @@ export function WhatIfSimulator() {
       calculateMonthlySummary(
         state.suppliers,
         state.employees,
-        adjustedSales
+        adjustedSales,
+        adjustedProductSales,
+        state.locations,
+        state.expenses
       ),
-    [state.suppliers, state.employees, adjustedSales]
+    [state.suppliers, state.employees, adjustedSales, adjustedProductSales, state.locations, state.expenses]
   );
 
   const profitDelta = whatIfSummary.grossProfit - baseSummary.grossProfit;
 
-  if (state.sales.length === 0) return null;
+  if (state.sales.length === 0 && state.productSales.length === 0) return null;
 
   return (
     <Card>
@@ -82,7 +97,7 @@ export function WhatIfSimulator() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-4 rounded-md bg-muted p-3 sm:p-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-5 rounded-md bg-muted p-3 sm:p-4">
           <div>
             <p className="text-xs text-muted-foreground">Revenue</p>
             <p className="text-sm font-semibold">
@@ -99,6 +114,17 @@ export function WhatIfSimulator() {
             <p className="text-xs text-muted-foreground">Commissions</p>
             <p className="text-sm font-semibold">
               <CurrencyDisplay amount={whatIfSummary.totalCommissions} />
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Fixed Costs</p>
+            <p className="text-sm font-semibold">
+              <CurrencyDisplay
+                amount={
+                  whatIfSummary.totalLocationCosts +
+                  whatIfSummary.totalExpenses
+                }
+              />
             </p>
           </div>
           <div>

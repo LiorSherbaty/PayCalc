@@ -1,4 +1,4 @@
-import { DollarSign, TrendingDown, Users, Percent } from "lucide-react";
+import { DollarSign, TrendingDown, Users, Receipt, Percent } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CurrencyDisplay } from "@/components/shared/CurrencyDisplay";
 import { formatPercent } from "@/utils/formatters";
@@ -31,6 +31,13 @@ export function SummaryCards({ summary }: ISummaryCardsProps) {
         "text-purple-600 bg-purple-50 dark:text-purple-400 dark:bg-purple-950",
     },
     {
+      title: "Fixed Costs",
+      value: summary.totalLocationCosts + summary.totalExpenses,
+      icon: Receipt,
+      accent:
+        "text-rose-600 bg-rose-50 dark:text-rose-400 dark:bg-rose-950",
+    },
+    {
       title: "Gross Profit",
       value: summary.grossProfit,
       icon: Percent,
@@ -42,7 +49,7 @@ export function SummaryCards({ summary }: ISummaryCardsProps) {
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
       {cards.map((card) => (
         <Card key={card.title}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">

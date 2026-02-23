@@ -24,7 +24,7 @@ import { CurrencyDisplay } from "@/components/shared/CurrencyDisplay";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useApp } from "@/context/AppContext";
 import { calculateMonthlySummary } from "@/utils/calculations";
-import type { IMonthlySalesEntry, IProductSaleEntry } from "@/types";
+import type { IMonthlySalesEntry } from "@/types";
 
 export function SalesEntryPage() {
   const {
@@ -35,23 +35,8 @@ export function SalesEntryPage() {
     clearSales,
   } = useApp();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
-  const [totalSales, setTotalSales] = useState("");
-  const [productQuantities, setProductQuantities] = useState<
-    Record<string, string>
-  >({});
+  const [dailySalesInputs, setDailySalesInputs] = useState<string[]>([""]);
   const [showClearDialog, setShowClearDialog] = useState(false);
-
-  const allProducts = useMemo(
-    () =>
-      state.suppliers.flatMap((s) =>
-        s.products.map((p) => ({
-          ...p,
-          supplierName: s.name,
-          supplierId: s.id,
-        }))
-      ),
-    [state.suppliers]
-  );
 
   const availableEmployees = state.employees.filter(
     (emp) => !state.sales.some((s) => s.employeeId === emp.id)
@@ -59,27 +44,48 @@ export function SalesEntryPage() {
 
   const summary = useMemo(
     () =>
-      calculateMonthlySummary(state.suppliers, state.employees, state.sales),
-    [state.suppliers, state.employees, state.sales]
+      calculateMonthlySummary(
+        state.suppliers,
+        state.employees,
+        state.sales,
+        state.productSales,
+        state.locations,
+        state.expenses
+      ),
+    [state.suppliers, state.employees, state.sales, state.productSales, state.locations, state.expenses]
   );
 
+  const dailyTotal = dailySalesInputs.reduce(
+    (sum, val) => sum + (parseFloat(val) || 0),
+    0
+  );
+
+  function handleAddDay() {
+    setDailySalesInputs((prev) => [...prev, ""]);
+  }
+
+  function handleRemoveDay(index: number) {
+    setDailySalesInputs((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function handleDaySalesChange(index: number, value: string) {
+    setDailySalesInputs((prev) =>
+      prev.map((v, i) => (i === index ? value : v))
+    );
+  }
+
   function handleAddEntry() {
-    if (!selectedEmployeeId || !totalSales) return;
+    if (!selectedEmployeeId) return;
 
-    const salesDollars = parseFloat(totalSales);
-    if (!Number.isFinite(salesDollars) || salesDollars < 0) return;
+    const dailySales = dailySalesInputs
+      .map((val) => parseFloat(val) || 0)
+      .filter((val) => val > 0);
 
-    const productSales: IProductSaleEntry[] = allProducts
-      .map((p) => ({
-        productId: p.id,
-        quantitySold: Math.max(0, Number(productQuantities[p.id]) || 0),
-      }))
-      .filter((ps) => ps.quantitySold > 0);
+    if (dailySales.length === 0) return;
 
     const entry: IMonthlySalesEntry = {
       employeeId: selectedEmployeeId,
-      totalSalesDollars: salesDollars,
-      productSales,
+      dailySales,
     };
 
     const existing = state.sales.find(
@@ -92,18 +98,12 @@ export function SalesEntryPage() {
     }
 
     setSelectedEmployeeId("");
-    setTotalSales("");
-    setProductQuantities({});
+    setDailySalesInputs([""]);
   }
 
   function handleEditEntry(entry: IMonthlySalesEntry) {
     setSelectedEmployeeId(entry.employeeId);
-    setTotalSales(entry.totalSalesDollars.toString());
-    const quantities: Record<string, string> = {};
-    for (const ps of entry.productSales) {
-      quantities[ps.productId] = ps.quantitySold.toString();
-    }
-    setProductQuantities(quantities);
+    setDailySalesInputs(entry.dailySales.map(String));
     deleteSalesEntry(entry.employeeId);
   }
 
@@ -111,7 +111,7 @@ export function SalesEntryPage() {
     <div className="space-y-6">
       <PageHeader
         title="Sales Entry"
-        description="Enter this month's sales data for each employee"
+        description="Enter this month's daily sales data for each employee"
         action={
           state.sales.length > 0 ? (
             <Button
@@ -131,78 +131,80 @@ export function SalesEntryPage() {
           <CardTitle className="text-base">Add Sales Entry</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label>Employee</Label>
+            <Select
+              value={selectedEmployeeId}
+              onValueChange={setSelectedEmployeeId}
+            >
+              <SelectTrigger className="w-full sm:w-64">
+                <SelectValue placeholder="Select employee" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableEmployees.map((emp) => (
+                  <SelectItem key={emp.id} value={emp.id}>
+                    {emp.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Daily Sales Rows */}
+          <div className="space-y-2">
+            <Label>Daily Sales ($)</Label>
             <div className="space-y-2">
-              <Label>Employee</Label>
-              <Select
-                value={selectedEmployeeId}
-                onValueChange={setSelectedEmployeeId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select employee" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableEmployees.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id}>
-                      {emp.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {dailySalesInputs.map((value, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground w-12 shrink-0">
+                    Day {index + 1}
+                  </span>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={value}
+                    onChange={(e) =>
+                      handleDaySalesChange(index, e.target.value)
+                    }
+                    className="w-full sm:w-40"
+                  />
+                  {dailySalesInputs.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive shrink-0"
+                      onClick={() => handleRemoveDay(index)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              ))}
             </div>
-            <div className="space-y-2">
-              <Label>Total Sales ($)</Label>
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={totalSales}
-                onChange={(e) => setTotalSales(e.target.value)}
-              />
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAddDay}
+              >
+                <Plus className="mr-2 h-3 w-3" />
+                Add Day
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Total:{" "}
+                <CurrencyDisplay
+                  amount={dailyTotal}
+                  className="font-semibold text-foreground"
+                />
+              </span>
             </div>
           </div>
 
-          {allProducts.length > 0 && (
-            <div className="space-y-2">
-              <Label>Product Quantities Sold</Label>
-              <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                {allProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="flex items-center gap-2 rounded-md border border-border px-3 py-2"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {product.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {product.supplierName}
-                      </p>
-                    </div>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="1"
-                      className="w-20 shrink-0"
-                      placeholder="0"
-                      value={productQuantities[product.id] || ""}
-                      onChange={(e) =>
-                        setProductQuantities((prev) => ({
-                          ...prev,
-                          [product.id]: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           <Button
             onClick={handleAddEntry}
-            disabled={!selectedEmployeeId || !totalSales}
+            disabled={!selectedEmployeeId || dailyTotal <= 0}
             className="w-full sm:w-auto"
           >
             <Plus className="mr-2 h-4 w-4" />
@@ -226,10 +228,10 @@ export function SalesEntryPage() {
                   <TableRow>
                     <TableHead>Employee</TableHead>
                     <TableHead className="text-right">Total Sales</TableHead>
-                    <TableHead className="text-right">Commission</TableHead>
                     <TableHead className="text-right hidden sm:table-cell">
-                      Products
+                      Days
                     </TableHead>
+                    <TableHead className="text-right">Commission</TableHead>
                     <TableHead className="w-24"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -241,8 +243,8 @@ export function SalesEntryPage() {
                     const empResult = summary.employeeBreakdown.find(
                       (e) => e.employeeId === entry.employeeId
                     );
-                    const totalProducts = entry.productSales.reduce(
-                      (sum, ps) => sum + ps.quantitySold,
+                    const totalSales = entry.dailySales.reduce(
+                      (sum, d) => sum + d,
                       0
                     );
 
@@ -252,18 +254,16 @@ export function SalesEntryPage() {
                           {employee?.name ?? "Unknown"}
                         </TableCell>
                         <TableCell className="text-right">
-                          <CurrencyDisplay
-                            amount={entry.totalSalesDollars}
-                          />
+                          <CurrencyDisplay amount={totalSales} />
+                        </TableCell>
+                        <TableCell className="text-right hidden sm:table-cell">
+                          {entry.dailySales.length}
                         </TableCell>
                         <TableCell className="text-right">
                           <CurrencyDisplay
                             amount={empResult?.commissionAmount ?? 0}
                             colorCode
                           />
-                        </TableCell>
-                        <TableCell className="text-right hidden sm:table-cell">
-                          {totalProducts} units
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1">
@@ -293,8 +293,8 @@ export function SalesEntryPage() {
               </Table>
             </div>
 
-            {/* Running totals — responsive grid */}
-            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4 rounded-md bg-muted px-3 py-3 text-sm">
+            {/* Running totals */}
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5 sm:gap-4 rounded-md bg-muted px-3 py-3 text-sm">
               <div>
                 <span className="text-xs text-muted-foreground block">
                   Revenue
@@ -319,6 +319,17 @@ export function SalesEntryPage() {
                 </span>
                 <CurrencyDisplay
                   amount={summary.totalCommissions}
+                  className="font-semibold"
+                />
+              </div>
+              <div>
+                <span className="text-xs text-muted-foreground block">
+                  Fixed Costs
+                </span>
+                <CurrencyDisplay
+                  amount={
+                    summary.totalLocationCosts + summary.totalExpenses
+                  }
                   className="font-semibold"
                 />
               </div>
